@@ -69,11 +69,11 @@ The app starts without credentials so health and UI can be inspected, but chat c
 
 Use Python 3.12+ and Node 20+.
 
-```sh
+```powershell
 cd backend
 python -m venv .venv
-# Windows PowerShell: .venv\Scripts\Activate.ps1
-# macOS/Linux: source .venv/bin/activate
+# Windows PowerShell
+.venv\Scripts\Activate.ps1
 pip install -r requirements-dev.txt
 $env:LLM_API_KEYS="your_provider_key_1,your_provider_key_2" # PowerShell
 $env:DATABASE_URL="sqlite:///./data/app.db"
@@ -81,14 +81,18 @@ $env:ALLOWED_ORIGINS="http://localhost:3000"
 uvicorn app.main:app --reload --port 8000
 ```
 
+On macOS/Linux, activate with `source .venv/bin/activate` and export the three environment variables before starting Uvicorn.
+
 In another terminal:
 
-```sh
+```powershell
 cd frontend
-npm install
+npm.cmd install
 # Set VITE_API_URL=http://localhost:8000 in frontend/.env.local if needed.
-npm run dev -- --port 3000
+npm.cmd run dev -- --port 3000
 ```
+
+On macOS/Linux, use `npm install` and `npm run dev -- --port 3000`.
 
 On macOS/Linux, use `export LLM_API_KEYS='key1,key2'`, `export DATABASE_URL='sqlite:///./data/app.db'`, and `export ALLOWED_ORIGINS='http://localhost:3000'` before starting FastAPI.
 
