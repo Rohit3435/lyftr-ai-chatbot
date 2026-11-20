@@ -71,15 +71,18 @@ def complete(settings: Settings, messages: list[dict[str, str]], simulation: dic
 
         try:
             started = time.perf_counter()
-            response = litellm.completion(
-                model=settings.model,
-                messages=messages,
-                api_key=api_key,
-                num_retries=0,
-                # A simulation must exercise provider fallback even when an
-                # identical request is already in LiteLLM's local cache.
-                cache={"no-cache": True} if simulation else None,
-            )
+            completion_arguments = {
+                "model": settings.model,
+                "messages": messages,
+                "api_key": api_key,
+                "num_retries": 0,
+            }
+            # Leave LiteLLM's normal cache setting untouched. Passing cache=None
+            # explicitly breaks its cache hook; simulations still need to bypass
+            # cache reads so an existing answer cannot hide the forced failure.
+            if simulation:
+                completion_arguments["cache"] = {"no-cache": True}
+            response = litellm.completion(**completion_arguments)
             elapsed_ms = max(0, int((time.perf_counter() - started) * 1000))
             choices = _field(response, "choices", []) or []
             choice = choices[0] if choices else None

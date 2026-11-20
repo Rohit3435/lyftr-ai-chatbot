@@ -55,11 +55,13 @@ def test_cache_hit_has_exact_source_null_key_zero_fallback_and_saved_usage(monke
 
 
 def test_cache_miss_is_live_and_reports_successful_key(monkeypatch):
-    monkeypatch.setattr(llm_service.litellm, "completion", lambda **kwargs: result(cache_hit=False))
+    calls = []
+    monkeypatch.setattr(llm_service.litellm, "completion", lambda **kwargs: calls.append(kwargs) or result(cache_hit=False))
     answer = llm_service.complete(settings(), [{"role": "user", "content": "new request"}], {})
     assert answer["resolution_source"] == "LIVE_INFERENCE"
     assert answer["key_id"] == "key_1"
     assert answer["fallback_attempts"] == 0
+    assert "cache" not in calls[0]
 
 
 def test_first_key_error_falls_back_to_second_and_tracks_attempts(monkeypatch):

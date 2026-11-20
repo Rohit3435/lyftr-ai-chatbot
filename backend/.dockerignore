@@ -1,3 +1,19 @@
+# Local environment files, credentials, and generated data
+.env
+.env.*
+!.env.example
+.envrc
+.netrc
+.pypirc
+*.pem
+*.key
+*.p12
+*.pfx
+secrets/
+*.db
+*.sqlite
+*.sqlite3
+
 __pycache__
 *.py[cod]
 .pytest_cache

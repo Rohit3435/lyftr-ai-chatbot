@@ -1,5 +1,7 @@
 """Contract, persistence, and failover tests using deterministic fake inference."""
 
+from uuid import uuid4
+
 from app.services import llm_service
 from conftest import install_fake_complete
 
@@ -25,6 +27,46 @@ def test_chat_response_and_history_preserve_metadata(api, monkeypatch):
     assert history.json()["messages"][1]["metadata"]["input_tokens"] == 17
 
 
+def test_litellm_cache_works_for_normal_chat_and_reuses_first_turn(api, monkeypatch):
+    """Exercise LiteLLM's real local cache while mocking only its provider reply."""
+    client, _ = api
+    original_completion = llm_service.litellm.completion
+    completion_calls = []
+    provider_generations = []
+    lite_llm_errors = []
+
+    def mocked_provider_completion(**arguments):
+        completion_calls.append(arguments.copy())
+        # LiteLLM's mock_response keeps the real caching wrapper active while
+        # preventing a network request to Gemini during the test.
+        arguments["mock_response"] = "A deterministic test reply."
+        try:
+            response = original_completion(**arguments)
+            if not getattr(response, "_hidden_params", {}).get("cache_hit"):
+                provider_generations.append(response)
+            return response
+        except Exception as error:
+            lite_llm_errors.append(f"{type(error).__name__}: {error}")
+            raise
+
+    monkeypatch.setattr(llm_service.litellm, "completion", mocked_provider_completion)
+    message = f"Cache regression request {uuid4()}"
+    first = client.post("/chat", json={"session_id": "cache-first", "message": message})
+    repeated = client.post("/chat", json={"session_id": "cache-second", "message": message})
+
+    assert first.status_code == 200
+    assert first.json()["metadata"]["resolution_source"] == "LIVE_INFERENCE"
+    assert first.json()["reply"] == "A deterministic test reply."
+    assert "cache" not in completion_calls[0]
+    assert repeated.status_code == 200, lite_llm_errors
+    assert repeated.json()["metadata"]["resolution_source"] == "LLM_CACHE"
+    assert repeated.json()["reply"] == first.json()["reply"]
+    assert repeated.json()["metadata"]["key_id"] is None
+    assert repeated.json()["metadata"]["fallback_attempts"] == 0
+    assert len(completion_calls) == 2
+    assert len(provider_generations) == 1
+
+
 def test_invalid_session_and_message_inputs_are_422(api):
     client, _ = api
     cases = [
@@ -38,6 +80,23 @@ def test_invalid_session_and_message_inputs_are_422(api):
         response = client.post("/chat", json=body)
         assert response.status_code == 422
         assert "detail" in response.json()
+
+
+def test_message_is_trimmed_before_length_validation(api, monkeypatch):
+    client, _ = api
+    install_fake_complete(monkeypatch)
+
+    for session_id, message in [("empty", ""), ("whitespace", "   ")]:
+        response = client.post("/chat", json={"session_id": session_id, "message": message})
+        assert response.status_code == 422
+
+    exact_limit = "x" * 4000
+    accepted = client.post("/chat", json={"session_id": "exact-limit", "message": f"  {exact_limit}  "})
+    assert accepted.status_code == 200
+    assert client.get("/sessions/exact-limit/messages").json()["messages"][0]["content"] == exact_limit
+
+    too_long = client.post("/chat", json={"session_id": "over-limit", "message": f"  {'x' * 4001}  "})
+    assert too_long.status_code == 422
 
 
 def test_malformed_json_is_json_422(api):

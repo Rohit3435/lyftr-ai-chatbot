@@ -9,6 +9,13 @@ class ChatRequest(BaseModel):
     message: str = Field(min_length=1, max_length=4000)
     system_prompt: str | None = Field(default=None, max_length=4000)
 
+    @field_validator("message", mode="before")
+    @classmethod
+    def trim_message_before_validation(cls, value: str) -> str:
+        if isinstance(value, str):
+            return value.strip()
+        return value
+
     @field_validator("session_id", "message")
     @classmethod
     def trim_and_check(cls, value: str) -> str:

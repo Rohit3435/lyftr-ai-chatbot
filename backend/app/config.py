@@ -24,7 +24,7 @@ def get_settings() -> Settings:
     keys = tuple(key.strip() for key in raw_keys.split(",") if key.strip() and not key.strip().lower().startswith("your_"))
     raw_origins = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000")
     return Settings(
-        model=os.getenv("LLM_MODEL", "gemini/gemini-2.0-flash"),
+        model=os.getenv("LLM_MODEL", "gemini/gemini-3.1-flash-lite"),
         api_keys=keys,
         database_url=os.getenv("DATABASE_URL", "sqlite:///./data/app.db"),
         allowed_origins=tuple(origin.strip() for origin in raw_origins.split(",") if origin.strip()),

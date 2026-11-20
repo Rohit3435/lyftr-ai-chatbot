@@ -32,7 +32,7 @@ Public deployment and the assignment demo video still need hosting accounts, val
 
 ### Configuration
 
-Copy `.env.example` to `.env` and replace the two placeholder values in `LLM_API_KEYS` with at least two valid keys for the same provider and model. Never commit `.env`. The default model is `gemini/gemini-2.0-flash`; change `LLM_MODEL` if your provider keys belong to a different supported provider/model. Keep keys in the backend environment only.
+Copy `.env.example` to `.env` and replace the two placeholder values in `LLM_API_KEYS` with at least two valid keys for the same provider and model. Never commit `.env`. The default model is `gemini/gemini-3.1-flash-lite`; change `LLM_MODEL` if your provider keys belong to a different supported provider/model. Keep keys in the backend environment only.
 
 Variables:
 

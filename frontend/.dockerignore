@@ -3,3 +3,18 @@ dist
 .git
 .vite
 npm-debug.log*
+# Local environment files and credentials
+.env
+.env.*
+!.env.example
+.envrc
+.netrc
+.npmrc
+*.pem
+*.key
+*.p12
+*.pfx
+secrets/
+*.db
+*.sqlite
+*.sqlite3
