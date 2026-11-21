@@ -21,8 +21,8 @@ render.yaml               Backend deployment blueprint with persistent disk
 
 ## 1. Live URLs
 
-- Frontend: **Pending deployment** (Vercel URL is not available yet).
-- Backend: **Pending deployment** (Render URL is not available yet).
+- Frontend: https://frontend-ivory-six-90.vercel.app
+- Backend:https://lyftr-ai-chatbot-iq5e.onrender.com/docs
 - Local frontend: http://localhost:3000
 - Local backend: http://localhost:8000
 
