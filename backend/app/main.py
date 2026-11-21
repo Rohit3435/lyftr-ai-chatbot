@@ -24,7 +24,7 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(title="Lyftr AI Chatbot", version="1.0.0", lifespan=lifespan, docs_url=None, redoc_url=None, openapi_url=None)
+app = FastAPI(title="Lyftr AI Chatbot", version="1.0.0", lifespan=lifespan, docs_url="/docs", redoc_url=None, openapi_url="/openapi.json")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=list(settings.allowed_origins),
